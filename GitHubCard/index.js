@@ -3,6 +3,21 @@
            https://api.github.com/users/<your name>
 */
 
+let cards = document.querySelector(".cards");
+let apiCall = `https://api.github.com/users/joshcirre`;
+
+axios
+  .get(apiCall)
+  .then(res => {
+    console.log(res.data);
+    let myObj = res.data;
+    console.log(`prop check`, myObj);
+    cards.appendChild(myCard(myObj));
+  })
+  .catch(error => {
+    console.log(`No git users here`, error);
+  });
+
 /* Step 2: Inspect and study the data coming back, this is YOUR 
    github info! You will need to understand the structure of this 
    data in order to use it to build your component function 
@@ -24,7 +39,34 @@
           user, and adding that card to the DOM.
 */
 
-const followersArray = [];
+let apiAll = `https://api.github.com/users/joshcirre/followers`;
+let followersArray = [];
+let mem;
+
+axios
+  .get(apiAll)
+  .then(response => {
+    console.log(`inCOMING`, response.data);
+    followersArray = [...response.data];
+    console.log(`followers`, followersArray);
+
+    followersArray.forEach(member => {
+      mem = member.login;
+      console.log(mem);
+      axios.get(`https://api.github.com/users/${mem}`).then(myTeam => {
+        let newInfo = myTeam.data;
+        console.log(`prop check`, newInfo);
+        cards.appendChild(myCard(newInfo));
+      });
+      // let memArray = [...mem]
+      // console.log(`newCall`,memArray)
+      // cards.appendChild(myCard(member))
+      // this might not work?
+    });
+  })
+  .catch(err => {
+    console.log(`No git users here`, err);
+  });
 
 /* Step 3: Create a function that accepts a single object as its only argument,
           Using DOM methods and properties, create a component that will return the following DOM element:
@@ -45,6 +87,51 @@ const followersArray = [];
 </div>
 
 */
+
+function myCard(items) {
+  console.log(`prop check`, items);
+  let divCard = document.createElement("div"),
+    image = document.createElement("img"), //done
+    divInfo = document.createElement("div"),
+    nameTitle = document.createElement("h3"), //done
+    userName = document.createElement("p"), //done
+    loc = document.createElement("p"), //done
+    prof = document.createElement("p"),
+    aLink = document.createElement("a"),
+    uFollow = document.createElement("p"),
+    iFollow = document.createElement("p"),
+    bio = document.createElement("p");
+
+  divCard.classList.add("card");
+  divInfo.classList.add("card-info");
+  nameTitle.classList.add("name");
+
+  image.src = items.avatar_url;
+  nameTitle.textContent = `Name: ${items.name}`;
+  userName.textContent = `Alias: ${items.login}`;
+  loc.textContent = `Located in: ${items.location}`;
+  aLink.textContent = `My Git: ${items.html_url}`;
+  uFollow.textContent = `Followers: ${items.followers}`;
+  iFollow.textContent = `Following: ${items.following}`;
+  bio.textContent = `What I do: ${items.bio}`;
+  
+  if (items.bio === null) {
+    bio.textContent = `(No BIO Available ¯\\_(ツ)_/¯)`
+  }
+
+  divCard.appendChild(image);
+  divCard.appendChild(divInfo);
+  divInfo.appendChild(nameTitle);
+  divInfo.appendChild(userName);
+  divInfo.appendChild(loc);
+  divInfo.appendChild(prof);
+  prof.appendChild(aLink);
+  divInfo.appendChild(uFollow);
+  divInfo.appendChild(iFollow);
+  divInfo.appendChild(bio);
+
+  return divCard;
+}
 
 /* List of LS Instructors Github username's: 
   tetondan
